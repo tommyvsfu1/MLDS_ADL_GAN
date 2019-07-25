@@ -89,7 +89,7 @@ def load_Anime(dataset_filepath='image/', opt=None):
     return dataloader
 
 
-def save_model(idx, G, D, save_path='./model/wgan_checkpoint/dict/'):
+def save_model(idx, G, D, save_path='./model/wgan_checkpoint/model_dict/'):
     print('save model to', save_path)
     torch.save(G.state_dict(), save_path + "WGAN_G" + str(idx) + '.cpt')
     torch.save(D.state_dict(), save_path + "WGAN_D" + str(idx) + '.cpt')
