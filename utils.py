@@ -16,9 +16,9 @@ warnings.filterwarnings("ignore")
 plt.ion()   # interactive mode
 
 
-def save_imgs(generator):
+def save_imgs(idx, generator, device):
     r, c = 5, 5
-    noise = Variable(torch.from_numpy((np.random.normal(0, 1, (r * c, 100)))).float())
+    noise = torch.from_numpy((np.random.normal(0, 1, (r * c, 100)))).float().to(device)
     
     # gen_imgs should be shape (25, 64, 64, 3)
     gen_imgs = generator.predict(noise).detach().numpy()
@@ -33,7 +33,7 @@ def save_imgs(generator):
             axs[i,j].imshow(img)
             axs[i,j].axis('off')
             cnt += 1
-    fig.savefig("output.png")
+    fig.savefig("./model/wgan_checkpoint/output/" + "WGAN_" + "output_" + str(idx) + ".png")
     plt.close()
 
 
@@ -87,3 +87,9 @@ def load_Anime(dataset_filepath='image/', opt=None):
                         shuffle=True, num_workers=4)
 
     return dataloader
+
+
+def save_model(idx, G, D, save_path='./model/wgan_checkpoint/dict/'):
+    print('save model to', save_path)
+    torch.save(G.state_dict(), save_path + "WGAN_G" + str(idx) + '.cpt')
+    torch.save(D.state_dict(), save_path + "WGAN_D" + str(idx) + '.cpt')
