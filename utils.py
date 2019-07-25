@@ -17,11 +17,12 @@ plt.ion()   # interactive mode
 
 
 def save_imgs(idx, generator, device):
-    r, c = 5, 5
+    r, c = 2, 2
     noise = torch.from_numpy((np.random.normal(0, 1, (r * c, 100)))).float().to(device)
     
     # gen_imgs should be shape (25, 64, 64, 3)
-    gen_imgs = generator.predict(noise).detach().numpy()
+    gen_imgs = generator.predict(noise).detach()
+    gen_imgs = gen_imgs.cpu().numpy()
     
     fig, axs = plt.subplots(r, c)
     cnt = 0
