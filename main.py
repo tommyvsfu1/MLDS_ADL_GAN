@@ -1,15 +1,15 @@
 # reference code https://github.com/eriklindernoren/PyTorch-GAN/blob/master/implementations/wgan/wgan.py
+# GAN tips : https://github.com/soumith/ganhacks
 import argparse
 import os
 import numpy as np
 import math
 import sys
-
 from torch.autograd import Variable
 import torch
 from argument import add_argument
 from utils import load_Anime
-from model.wgan import Generator, Discriminator
+from model.wgangp import compute_gradient_penalty
 from utils import save_model, save_imgs # MLDS default save_imgs function
 from logger import TensorboardLogger
 parser = add_argument(argparse.ArgumentParser()) # argument.py
@@ -21,24 +21,39 @@ cuda = True if torch.cuda.is_available() else False
 device = torch.device('cuda') if cuda else torch.device('cpu')
 
 # Initialize generator and discriminator
+if opt.model_use == "WGAN":
+    from model.wgan import Generator, Discriminator
+    print("using WGAN")
+elif opt.model_use == "WGANGP":
+    pass
 generator = Generator(opt).to(device)
 discriminator = Discriminator(opt).to(device)
 
 # Optimizers
-optimizer_G = torch.optim.RMSprop(generator.parameters(), lr=opt.lr)
-optimizer_D = torch.optim.RMSprop(discriminator.parameters(), lr=opt.lr)
+# Tip 9 : use Adam
+if opt.model_use == "WGAN":
+    optimizer_G = torch.optim.RMSprop(generator.parameters(), lr=opt.lr)
+    optimizer_D = torch.optim.RMSprop(discriminator.parameters(), lr=opt.lr)
+elif opt.model_use == "WGANGP": # WGANGP paper default parameters
+    optimizer_G = torch.optim.Adam(generator.parameters(), lr=0.0001,betas=(0,0.9))
+    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=0.0001,betas=(0,0.9))
 
 # Load data
 dataloader = load_Anime()
 
 # log
-tensorboard = TensorboardLogger('./wgan')
+if opt.model_use == "WGAN":
+    log_dir = './wgan'
+elif opt.model_use == "WGANGP":
+    log_dir = './wgangp'
+tensorboard = TensorboardLogger(log_dir)
 # ----------
 #  Training
 # ----------
 
 batches_done = 0
 epoch_s = 0
+
 for epoch in range(opt.n_epochs):
 
     for i, imgs in enumerate(dataloader):
@@ -53,19 +68,28 @@ for epoch in range(opt.n_epochs):
         optimizer_D.zero_grad()
 
         # Sample noise as generator input
-        z = torch.from_numpy(np.random.normal(0, 1, (imgs.shape[0], opt.latent_dim))).float().to(device)
-
+        z = np.expand_dims(np.random.normal(0, 1, (imgs.shape[0], opt.latent_dim)),axis=2)
+        z = np.expand_dims(z, axis=3)
+        z = torch.from_numpy(z).float().to(device)
         # Generate a batch of images
         fake_imgs = generator(z).detach()
-        # Adversarial loss
-        loss_D = -torch.mean(discriminator(real_imgs)) + torch.mean(discriminator(fake_imgs))
 
+        # Adversarial loss
+        if opt.model_use == "WGAN":
+            loss_D = -torch.mean(discriminator(real_imgs)) + torch.mean(discriminator(fake_imgs))
+        elif opt.model_use == "WGANGP":
+            penalty = compute_gradient_penalty(discriminator, real_imgs, fake_imgs)
+            loss_D = -torch.mean(discriminator(real_imgs)) + torch.mean(discriminator(fake_imgs)) + \
+                     torch.tensor([10])*penalty
+        
+        
         loss_D.backward()
         optimizer_D.step()
 
         # Clip weights of discriminator(WGAN weight clipping)
-        for p in discriminator.parameters():
-            p.data.clamp_(-opt.clip_value, opt.clip_value)
+        if opt.model_use == "WGAN":
+            for p in discriminator.parameters():
+                p.data.clamp_(-opt.clip_value, opt.clip_value)
 
         # Train the generator every n_critic iterations
         if i % opt.n_critic == 0:

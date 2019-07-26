@@ -8,6 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 from torch.autograd import Variable
 from scipy.misc import imread
+from scipy.stats import norm
 from PIL import Image
 # Ignore warnings
 import warnings
@@ -18,8 +19,10 @@ plt.ion()   # interactive mode
 
 def save_imgs(idx, generator, device):
     r, c = 2, 2
-    noise = torch.from_numpy((np.random.normal(0, 1, (r * c, 100)))).float().to(device)
-    
+    noise = np.expand_dims(np.random.normal(0, 1, (r * c, 100)),axis=2)
+    noise = np.expand_dims(noise, axis=3)
+    noise = torch.from_numpy(noise).float().to(device)
+
     # gen_imgs should be shape (25, 64, 64, 3)
     gen_imgs = generator.predict(noise).detach()
     gen_imgs = gen_imgs.cpu().numpy()
@@ -76,7 +79,8 @@ def load_Anime(dataset_filepath='image/', opt=None):
 
     data_transform = transforms.Compose([
         transforms.Resize(size=img_size),
-        transforms.ToTensor()
+        transforms.ToTensor(),
+        transforms.Normalize([0.5,0.5,0.5],[0.5,0.5,0.5]) # tip 1 : normalize the images between -1 and 1
     ])
 
     dataset = AnimeDataset(csv_file=dataset_filepath + 'tags_clean.csv',
@@ -94,3 +98,4 @@ def save_model(idx, G, D, save_path='./model/wgan_checkpoint/model_dict/'):
     print('save model to', save_path)
     torch.save(G.state_dict(), save_path + "WGAN_G" + str(idx) + '.cpt')
     torch.save(D.state_dict(), save_path + "WGAN_D" + str(idx) + '.cpt')
+
