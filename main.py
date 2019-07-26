@@ -19,15 +19,17 @@ print(opt)
 # Device
 cuda = True if torch.cuda.is_available() else False
 device = torch.device('cuda') if cuda else torch.device('cpu')
-
+print("using device:", device)
 # Initialize generator and discriminator
 if opt.model_use == "WGAN":
-    from model.wgan import Generator, Discriminator
+    from model.wgan import Generator, Discriminator, initialize_weights
     print("using WGAN")
 elif opt.model_use == "WGANGP":
     pass
 generator = Generator(opt).to(device)
 discriminator = Discriminator(opt).to(device)
+generator.apply(initialize_weights)
+discriminator.apply(initialize_weights)
 
 # Optimizers
 # Tip 9 : use Adam
