@@ -31,7 +31,7 @@ class Unflatten(nn.Module):
         return x.view(self.N, self.C, self.H, self.W)
 
 def initialize_weights(m):
-    if isinstance(m, nn.Linear) or isinstance(m, nn.ConvTranspose2d):
+    if (isinstance(m, nn.Linear) or isinstance(m, nn.ConvTranspose2d)) or isinstance(m, nn.Conv2d):
         torch.nn.init.xavier_uniform_(m.weight.data)
 
 class Generator(nn.Module):

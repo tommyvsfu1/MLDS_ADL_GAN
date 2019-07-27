@@ -34,8 +34,11 @@ discriminator.apply(initialize_weights)
 # Optimizers
 # Tip 9 : use Adam
 if opt.model_use == "WGAN":
-    optimizer_G = torch.optim.RMSprop(generator.parameters(), lr=opt.lr)
-    optimizer_D = torch.optim.RMSprop(discriminator.parameters(), lr=opt.lr)
+    # optimizer_G = torch.optim.RMSprop(generator.parameters(), lr=opt.lr)
+    # optimizer_D = torch.optim.RMSprop(discriminator.parameters(), lr=opt.lr)
+    # exp 4 , use Adam
+    optimizer_G = torch.optim.Adam(generator.parameters(), lr=0.0001,betas=(0,0.9))
+    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=0.0001,betas=(0,0.9))    
 elif opt.model_use == "WGANGP": # WGANGP paper default parameters
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=0.0001,betas=(0,0.9))
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=0.0001,betas=(0,0.9))

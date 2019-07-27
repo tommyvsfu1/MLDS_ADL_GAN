@@ -10,6 +10,6 @@ def add_argument(parser):
     parser.add_argument("--channels", type=int, default=3, help="number of image channels")
     parser.add_argument("--n_critic", type=int, default=5, help="number of training steps for discriminator per iter")
     parser.add_argument("--clip_value", type=float, default=0.01, help="lower and upper clip value for disc. weights, WGAN paper default values")
-    parser.add_argument("--sample_interval", type=int, default=20000, help="interval betwen image samples")
+    parser.add_argument("--sample_interval", type=int, default=5000, help="interval betwen image samples")
     parser.add_argument("--model_use",type=str,default='WGAN',help="WGAN model")
     return parser
