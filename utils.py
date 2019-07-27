@@ -33,7 +33,7 @@ def save_imgs(idx, generator, device):
         for j in range(c):
             gen_imgs = gen_imgs.reshape((gen_imgs.shape[0],3,64,64))
             img = (gen_imgs[cnt,:,:,:]).transpose((1, 2, 0)) # C,H,W -> H,W,C
-            img = (img * 255).astype(np.uint8)
+            img = ((img + 1)*127.5).astype(np.uint8)
             axs[i,j].imshow(img)
             axs[i,j].axis('off')
             cnt += 1
@@ -88,6 +88,13 @@ def load_Anime(dataset_filepath='image/', opt=None):
                                             transform=data_transform
                                             )
 
+    for i in range(len(dataset)):
+        sample = dataset[i]
+        print("sample",sample)
+        if i == 1:
+            break
+
+
     dataloader = DataLoader(dataset, batch_size=batch_size,
                         shuffle=True, num_workers=4)
 
@@ -99,3 +106,5 @@ def save_model(idx, G, D, save_path='./model/wgan_checkpoint/model_dict/'):
     torch.save(G.state_dict(), save_path + "WGAN_G" + str(idx) + '.cpt')
     torch.save(D.state_dict(), save_path + "WGAN_D" + str(idx) + '.cpt')
 
+
+load_Anime()
