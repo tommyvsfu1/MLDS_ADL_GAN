@@ -117,9 +117,8 @@ for epoch in range(opt.n_epochs):
             )
 
         if batches_done % opt.sample_interval == 0:
-            pass
-            #save_imgs(batches_done, generator,device)
-            #save_model(batches_done, generator, discriminator)
+            save_imgs(batches_done, generator,device)
+            save_model(batches_done, generator, discriminator)
             
 
         tensorboard.scalar_summary("batch_D_loss",loss_D.item(),batches_done)
