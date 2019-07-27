@@ -30,6 +30,12 @@ class Unflatten(nn.Module):
     def forward(self, x):
         return x.view(self.N, self.C, self.H, self.W)
 
+class Flatten(nn.Module):
+    def forward(self, x):
+        N, C, H, W = x.size() # read in N, C, H, W
+        return x.view(N, -1)  # "flatten" the C * H * W values into a single vector per image
+
+
 def initialize_weights(m):
     if (isinstance(m, nn.Linear) or isinstance(m, nn.ConvTranspose2d)) or isinstance(m, nn.Conv2d):
         torch.nn.init.xavier_uniform_(m.weight.data)
@@ -92,7 +98,9 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(ndf * 8),
             nn.LeakyReLU(0.2, inplace=True),
             # state size. (ndf*8) x 4 x 4
-            nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
+            Flatten(),
+            nn.Linear(512*4*4,1),
+            # nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
             nn.Sigmoid()
         )        
     def forward(self, img):
@@ -100,12 +108,12 @@ class Discriminator(nn.Module):
         return validity
 
 
-# test_g_gan = Generator()
-# test_g_gan.apply(initialize_weights)
-# test_d_gan = Discriminator()
-# fake_seed = torch.randn(16, 100,1,1)
-# fake_images = test_g_gan.forward(fake_seed)
-# print(fake_images.size())
-# label = test_d_gan(fake_images)
-# print(label.size())
+#test_g_gan = Generator()
+#test_g_gan.apply(initialize_weights)
+#test_d_gan = Discriminator()
+#fake_seed = torch.randn(16, 100,1,1)
+#fake_images = test_g_gan.forward(fake_seed)
+#print(fake_images.size())
+#label = test_d_gan(fake_images)
+#print(label.size())
 # print("label",label)
