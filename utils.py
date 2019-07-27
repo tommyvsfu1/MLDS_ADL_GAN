@@ -88,13 +88,6 @@ def load_Anime(dataset_filepath='image/', opt=None):
                                             transform=data_transform
                                             )
 
-    for i in range(len(dataset)):
-        sample = dataset[i]
-        print("sample",sample)
-        if i == 1:
-            break
-
-
     dataloader = DataLoader(dataset, batch_size=batch_size,
                         shuffle=True, num_workers=4)
 
