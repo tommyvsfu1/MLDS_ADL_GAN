@@ -45,4 +45,20 @@ structure 2
 
 然後我回去看李老師的lecture，我看他們training 50000 update就差不多了，所以大概50 epochs (1 hours多一點就可以開始debug，不用到6 hours)
 
+exp3  
+Leaky ReLU  
+exp4  
+Adam + Conv2d initialization  
+exp5  
+D updates times : 5 -> 1  
+exp6  
+Dense 架構  
+exp7  
+前面的實驗算是白做了，因為Image我做了normalization to [-1,1]  
+但是，在save_image 中我denormalize是img*255 而非(img+1)*127.5  
 
+
+
+## Reference for Debug
+https://github.com/pavitrakumar78/Anime-Face-GAN-Keras/blob/master/GAN_Trainingv3.py
+https://github.com/nashory/gans-awesome-applications (find some useful repo, read their code for debugging)

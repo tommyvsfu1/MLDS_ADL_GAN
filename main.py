@@ -35,11 +35,11 @@ discriminator.apply(initialize_weights)
 # Optimizers
 # Tip 9 : use Adam
 if opt.model_use == "WGAN":
-    # optimizer_G = torch.optim.RMSprop(generator.parameters(), lr=opt.lr)
-    # optimizer_D = torch.optim.RMSprop(discriminator.parameters(), lr=opt.lr)
+    optimizer_G = torch.optim.RMSprop(generator.parameters(), lr=opt.lr)
+    optimizer_D = torch.optim.RMSprop(discriminator.parameters(), lr=opt.lr)
     # exp 4 , use Adam
-    optimizer_G = torch.optim.Adam(generator.parameters(), lr=0.0001,betas=(0,0.9))
-    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=0.0001,betas=(0,0.9))    
+    # optimizer_G = torch.optim.Adam(generator.parameters(), lr=0.0001,betas=(0,0.9))
+    # optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=0.0001,betas=(0,0.9))    
 elif opt.model_use == "WGANGP": # WGANGP paper default parameters
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=0.0001,betas=(0,0.9))
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=0.0001,betas=(0,0.9))
@@ -68,7 +68,9 @@ for epoch in range(opt.n_epochs):
         # ---------------------
         #  Train Discriminator
         # ---------------------
-
+        for p in discriminator.parameters(): # reset requires_grad
+            p.requires_grad = True # they are set to False below in discriminator update
+        
         optimizer_D.zero_grad()
 
         # Sample noise as generator input
@@ -97,7 +99,8 @@ for epoch in range(opt.n_epochs):
 
         # Train the generator every n_critic iterations
         if i % opt.n_critic == 0:
-
+            for p in discriminator.parameters():
+                p.requires_grad = False # to avoid computation
             # -----------------
             #  Train Generator
             # -----------------
@@ -106,6 +109,7 @@ for epoch in range(opt.n_epochs):
 
             # Generate a batch of images
             gen_imgs = generator(z)
+
             # Adversarial loss
             loss_G = -torch.mean(discriminator(gen_imgs))
 
