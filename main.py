@@ -57,12 +57,10 @@ batches_done = 0
 epoch_s = 0
 
 for epoch in range(opt.n_epochs):
-
     for i, imgs in enumerate(dataloader):
 
         # Configure input
         real_imgs = imgs.to(device)
-
         # ---------------------
         #  Train Discriminator
         # ---------------------
@@ -116,8 +114,9 @@ for epoch in range(opt.n_epochs):
             )
 
         if batches_done % opt.sample_interval == 0:
-            save_imgs(batches_done, generator,device)
-            save_model(batches_done, generator, discriminator)
+            pass
+            #save_imgs(batches_done, generator,device)
+            #save_model(batches_done, generator, discriminator)
             
 
         tensorboard.scalar_summary("batch_D_loss",loss_D.item(),batches_done)

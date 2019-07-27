@@ -30,3 +30,19 @@ self.model = nn.Sequential(
     nn.Linear(256, 1),
 )
 ```
+
+
+
+
+structure 2
+使用pytorch tutorial DCGAN 架構
+
+60000 updates
+![](https://i.imgur.com/07U4qQd.png)
+
+發生很嚴重的noise 問題，不知道哪裡出錯了
+
+
+然後我回去看李老師的lecture，我看他們training 50000 update就差不多了，所以大概50 epochs (1 hours多一點就可以開始debug，不用到6 hours)
+
+
