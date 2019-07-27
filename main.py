@@ -28,6 +28,7 @@ elif opt.model_use == "WGANGP":
     pass
 generator = Generator(opt).to(device)
 discriminator = Discriminator(opt).to(device)
+
 generator.apply(initialize_weights)
 discriminator.apply(initialize_weights)
 
