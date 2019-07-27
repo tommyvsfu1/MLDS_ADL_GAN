@@ -106,5 +106,3 @@ def save_model(idx, G, D, save_path='./model/wgan_checkpoint/model_dict/'):
     torch.save(G.state_dict(), save_path + "WGAN_G" + str(idx) + '.cpt')
     torch.save(D.state_dict(), save_path + "WGAN_D" + str(idx) + '.cpt')
 
-
-load_Anime()
