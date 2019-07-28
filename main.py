@@ -1,4 +1,5 @@
 # reference code https://github.com/eriklindernoren/PyTorch-GAN/blob/master/implementations/wgan/wgan.py
+# https://github.com/martinarjovsky/WassersteinGAN/blob/master/main.py
 # GAN tips : https://github.com/soumith/ganhacks
 import argparse
 import os

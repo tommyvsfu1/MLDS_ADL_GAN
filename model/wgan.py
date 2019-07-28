@@ -101,20 +101,20 @@ class Discriminator(nn.Module):
             # Flatten(),
             # nn.Linear(512*4*4,1),
             nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
-            nn.Sigmoid()
+            #nn.Sigmoid()
         )        
     def forward(self, img):
         validity = self.model(img)
         return validity
 
 
-#test_g_gan = Generator()
-#test_g_gan.apply(initialize_weights)
-#test_d_gan = Discriminator()
-#fake_seed = torch.randn(16, 100,1,1)
-#fake_images = test_g_gan.forward(fake_seed)
-#print(fake_images.size())
-#print("fake image", fake_images[0])
-#label = test_d_gan(fake_images)
-#print(label.size())
-# print("label",label)
+# test_g_gan = Generator()
+# test_g_gan.apply(initialize_weights)#
+# test_d_gan = Discriminator()
+# fake_seed = torch.randn(16, 100,1,1)
+# fake_images = test_g_gan.forward(fake_seed)
+# print(fake_images.size())
+# print("fake image", fake_images[0])
+# label = test_d_gan(fake_images)
+# print(label.size())
+# print("label",label.size())
