@@ -9,9 +9,9 @@ import sys
 from torch.autograd import Variable
 import torch
 from argument import add_argument
-from utils import load_Anime
+from utils import load_Anime, load_mnist
 from model.wgangp import compute_gradient_penalty
-from utils import save_model, save_imgs # MLDS default save_imgs function
+from utils import save_model, save_imgs, save_mnist_imgs # MLDS default save_imgs function
 from logger import TensorboardLogger
 parser = add_argument(argparse.ArgumentParser()) # argument.py
 opt = parser.parse_args()
@@ -46,7 +46,8 @@ elif opt.model_use == "WGANGP": # WGANGP paper default parameters
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=0.0001,betas=(0,0.9))
 
 # Load data
-dataloader = load_Anime()
+#dataloader = load_Anime()
+dataloader = load_mnist()
 
 # log
 if opt.model_use == "WGAN":
@@ -62,7 +63,7 @@ batches_done = 0
 epoch_s = 0
 
 for epoch in range(opt.n_epochs):
-    for i, imgs in enumerate(dataloader):
+    for i, (imgs,_) in enumerate(dataloader):
 
         # Configure input
         real_imgs = imgs.to(device)
@@ -72,6 +73,7 @@ for epoch in range(opt.n_epochs):
         for p in discriminator.parameters(): # reset requires_grad
             p.requires_grad = True # they are set to False below in discriminator update
         
+
         optimizer_D.zero_grad()
 
         # Sample noise as generator input
@@ -83,22 +85,25 @@ for epoch in range(opt.n_epochs):
 
         # Adversarial loss
         if opt.model_use == "WGAN":
-            loss_D_real = torch.mean(discriminator(real_imgs))
+            loss_D_real = -torch.mean(discriminator(real_imgs))
+            loss_D_real.backward()
+                        
             loss_D_fake = torch.mean(discriminator(fake_imgs))
-            loss_D = -loss_D_real + loss_D_fake
+            loss_D_fake.backward()
+
+            optimizer_D.step()
+
+            # Clip weights of discriminator(WGAN weight clipping)
+            for p in discriminator.parameters():
+                p.data.clamp_(-opt.clip_value, opt.clip_value)
+
+
         elif opt.model_use == "WGANGP":
             penalty = compute_gradient_penalty(discriminator, real_imgs, fake_imgs)
             loss_D = -torch.mean(discriminator(real_imgs)) + torch.mean(discriminator(fake_imgs)) + \
                      torch.tensor([10])*penalty
         
-        
-        loss_D.backward()
-        optimizer_D.step()
 
-        # Clip weights of discriminator(WGAN weight clipping)
-        if opt.model_use == "WGAN":
-            for p in discriminator.parameters():
-                p.data.clamp_(-opt.clip_value, opt.clip_value)
 
         # Train the generator every n_critic iterations
         if i % opt.n_critic == 0:
@@ -121,21 +126,22 @@ for epoch in range(opt.n_epochs):
 
             print(
                 "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
-                % (epoch, opt.n_epochs, batches_done % len(dataloader), len(dataloader), loss_D.item(), loss_G.item())
+                % (epoch, opt.n_epochs, batches_done % len(dataloader), len(dataloader),(loss_D_real+loss_D_fake).item(), loss_G.item())
             )
 
         if batches_done % opt.sample_interval == 0:
-            save_imgs(batches_done, generator,device)
-            save_model(batches_done, generator, discriminator)
+            save_mnist_imgs(batches_done, generator, device)
+            #save_imgs(batches_done, generator,device)
+            #save_model(batches_done, generator, discriminator)
             
 
-        tensorboard.scalar_summary("batch_D_loss",loss_D.item(),batches_done)
+        tensorboard.scalar_summary("batch_D_loss",(loss_D_real+loss_D_fake).item(),batches_done)
         tensorboard.scalar_summary("batch_D_real_loss", loss_D_real.item(), batches_done)
         tensorboard.scalar_summary("batch_D_fake_loss", loss_D_fake.item(), batches_done)
         tensorboard.scalar_summary("batch_G_loss",loss_G.item(),batches_done)
         batches_done += 1
         
-    tensorboard.scalar_summary("epoch_D_loss",loss_D.item(),epoch_s)
+    tensorboard.scalar_summary("epoch_D_loss",(loss_D_real+loss_D_fake).item(),epoch_s)
     tensorboard.scalar_summary("epoch_D_real_loss", loss_D_real.item(), epoch_s)
     tensorboard.scalar_summary("epoch_D_fake_loss", loss_D_fake.item(), epoch_s)
     tensorboard.scalar_summary("epoch_G_loss",loss_G.item(),epoch_s)

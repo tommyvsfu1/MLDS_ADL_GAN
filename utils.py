@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
+from torchvision import datasets
 from torchvision import transforms, utils
 from torch.autograd import Variable
 from scipy.misc import imread
@@ -31,13 +32,37 @@ def save_imgs(idx, generator, device):
     cnt = 0
     for i in range(r):
         for j in range(c):
-            gen_imgs = gen_imgs.reshape((gen_imgs.shape[0],3,64,64))
-            img = (gen_imgs[cnt,:,:,:]).transpose((1, 2, 0)) # C,H,W -> H,W,C
+            gen = gen_imgs.reshape((gen_imgs.shape[0],3,64,64))
+            img = (gen[cnt,:,:,:]).transpose((1, 2, 0)) # C,H,W -> H,W,C
             img = ((img + 1)*127.5).astype(np.uint8)
             axs[i,j].imshow(img)
             axs[i,j].axis('off')
             cnt += 1
     fig.savefig("./model/wgan_checkpoint/output/" + "WGAN_" + "output_" + str(idx) + ".png")
+    plt.close()
+
+def save_mnist_imgs(idx, generator, device):
+    r, c = 2, 2
+    noise = np.expand_dims(np.random.normal(0, 1, (r * c, 100)),axis=2)
+    noise = np.expand_dims(noise, axis=3)
+    noise = torch.from_numpy(noise).float().to(device)
+
+    # gen_imgs should be shape (25, 64, 64, 3)
+    gen_imgs = generator.predict(noise).detach()
+    gen_imgs = gen_imgs.cpu().numpy()
+    print("gen imgs size", gen_imgs.shape)
+    fig, axs = plt.subplots(r, c)
+    cnt = 0
+    for i in range(r):
+        for j in range(c):
+            gen = gen_imgs.reshape((gen_imgs.shape[0],1,32,32))
+            img = (gen[cnt,:,:,:]).transpose((1, 2, 0)) # C,H,W -> H,W,C
+            img = img.reshape((32,32))
+            img = ((img + 1)*127.5).astype(np.uint8)
+            axs[i,j].imshow(img,cmap='gray',vmin=0, vmax=255)
+            axs[i,j].axis('off')
+            cnt += 1
+    fig.savefig("./model/wgan_checkpoint/mnist_output/" + "WGAN_" + "output_" + str(idx) + ".png")
     plt.close()
 
 
@@ -93,6 +118,23 @@ def load_Anime(dataset_filepath='image/', opt=None):
 
     return dataloader
 
+def load_mnist(opt=None):
+    transform = transforms.Compose([
+        transforms.Resize(32),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.5], std=[0.5])
+    ])
+    dataloader = torch.utils.data.DataLoader(
+        datasets.MNIST(
+            "./dataset/mnist",
+            train=True,
+            download=True,
+            transform=transform,
+        ),
+        batch_size=64,
+        shuffle=True,
+    )
+    return dataloader
 
 def save_model(idx, G, D, save_path='./model/wgan_checkpoint/model_dict/'):
     print('save model to', save_path)
