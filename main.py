@@ -74,8 +74,6 @@ for epoch in range(opt.n_epochs):
             p.requires_grad = True # they are set to False below in discriminator update
         for p in generator.parameters():
             p.requires_grad = False
-        discriminator.train()
-        generator.eval()
 
         optimizer_D.zero_grad()
 
@@ -114,8 +112,6 @@ for epoch in range(opt.n_epochs):
                 p.requires_grad = False # to avoid computation
             for p in generator.parameters():
                 p.requires_grad = True
-            discriminator.eval()
-            generator.train()
             # -----------------
             #  Train Generator
             # -----------------
