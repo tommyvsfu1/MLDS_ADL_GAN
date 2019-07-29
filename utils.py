@@ -50,7 +50,6 @@ def save_mnist_imgs(idx, generator, device):
     # gen_imgs should be shape (25, 64, 64, 3)
     gen_imgs = generator.predict(noise).detach()
     gen_imgs = gen_imgs.cpu().numpy()
-    print("gen imgs size", gen_imgs.shape)
     fig, axs = plt.subplots(r, c)
     cnt = 0
     for i in range(r):

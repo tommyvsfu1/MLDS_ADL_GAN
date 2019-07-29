@@ -46,8 +46,8 @@ elif opt.model_use == "WGANGP": # WGANGP paper default parameters
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=0.0001,betas=(0,0.9))
 
 # Load data
-#dataloader = load_Anime()
-dataloader = load_mnist()
+dataloader = load_Anime()
+# dataloader = load_mnist()
 
 # log
 if opt.model_use == "WGAN":
@@ -63,7 +63,7 @@ batches_done = 0
 epoch_s = 0
 
 for epoch in range(opt.n_epochs):
-    for i, (imgs,_) in enumerate(dataloader):
+    for i, imgs in enumerate(dataloader):
 
         # Configure input
         real_imgs = imgs.to(device)
@@ -72,7 +72,10 @@ for epoch in range(opt.n_epochs):
         # ---------------------
         for p in discriminator.parameters(): # reset requires_grad
             p.requires_grad = True # they are set to False below in discriminator update
-        
+        for p in generator.parameters():
+            p.requires_grad = False
+        discriminator.train()
+        generator.eval()
 
         optimizer_D.zero_grad()
 
@@ -85,9 +88,11 @@ for epoch in range(opt.n_epochs):
 
         # Adversarial loss
         if opt.model_use == "WGAN":
+            discriminator.train()
             loss_D_real = -torch.mean(discriminator(real_imgs))
             loss_D_real.backward()
-                        
+            
+
             loss_D_fake = torch.mean(discriminator(fake_imgs))
             loss_D_fake.backward()
 
@@ -109,6 +114,10 @@ for epoch in range(opt.n_epochs):
         if i % opt.n_critic == 0:
             for p in discriminator.parameters():
                 p.requires_grad = False # to avoid computation
+            for p in generator.parameters():
+                p.requires_grad = True
+            discriminator.eval()
+            generator.train()
             # -----------------
             #  Train Generator
             # -----------------
@@ -130,9 +139,9 @@ for epoch in range(opt.n_epochs):
             )
 
         if batches_done % opt.sample_interval == 0:
-            save_mnist_imgs(batches_done, generator, device)
-            #save_imgs(batches_done, generator,device)
-            #save_model(batches_done, generator, discriminator)
+            # save_mnist_imgs(batches_done, generator, device)
+            save_imgs(batches_done, generator,device)
+            save_model(batches_done, generator, discriminator)
             
 
         tensorboard.scalar_summary("batch_D_loss",(loss_D_real+loss_D_fake).item(),batches_done)
