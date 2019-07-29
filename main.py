@@ -61,7 +61,8 @@ tensorboard = TensorboardLogger(log_dir)
 
 batches_done = 0
 epoch_s = 0
-
+one = (torch.FloatTensor([1])).cuda()
+mone = (one * -1).cuda()
 for epoch in range(opt.n_epochs):
     for i, imgs in enumerate(dataloader):
 
@@ -86,12 +87,15 @@ for epoch in range(opt.n_epochs):
 
         # Adversarial loss
         if opt.model_use == "WGAN":
-            loss_D_real = -torch.mean(discriminator(real_imgs))
-            
-            loss_D_fake = torch.mean(discriminator(fake_imgs))
+            loss_D_real = torch.mean(discriminator(real_imgs))
+            loss_D_real.backward(one)
 
-            loss = loss_D_real + loss_D_fake
-            loss.backward()
+            loss_D_fake = torch.mean(discriminator(fake_imgs))
+            loss_D_fake.backward(mone)
+
+            #loss = loss_D_real + loss_D_fake
+            d_loss = loss_D_fake - loss_D_real
+            wd = -d_loss
             optimizer_D.step()
 
             # Clip weights of discriminator(WGAN weight clipping)
@@ -139,13 +143,13 @@ for epoch in range(opt.n_epochs):
             save_model(batches_done, generator, discriminator)
             
 
-        tensorboard.scalar_summary("batch_D_loss",(loss_D_real+loss_D_fake).item(),batches_done)
+        tensorboard.scalar_summary("batch_D_loss",(d_loss).item(),batches_done)
         tensorboard.scalar_summary("batch_D_real_loss", loss_D_real.item(), batches_done)
         tensorboard.scalar_summary("batch_D_fake_loss", loss_D_fake.item(), batches_done)
         tensorboard.scalar_summary("batch_G_loss",loss_G.item(),batches_done)
         batches_done += 1
         
-    tensorboard.scalar_summary("epoch_D_loss",(loss_D_real+loss_D_fake).item(),epoch_s)
+    tensorboard.scalar_summary("epoch_D_loss",d_loss.item(),epoch_s)
     tensorboard.scalar_summary("epoch_D_real_loss", loss_D_real.item(), epoch_s)
     tensorboard.scalar_summary("epoch_D_fake_loss", loss_D_fake.item(), epoch_s)
     tensorboard.scalar_summary("epoch_G_loss",loss_G.item(),epoch_s)
