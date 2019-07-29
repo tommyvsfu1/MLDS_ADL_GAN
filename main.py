@@ -140,6 +140,7 @@ for epoch in range(opt.n_epochs):
 
         if batches_done % opt.sample_interval == 0:
             # save_mnist_imgs(batches_done, generator, device)
+            print("saving... images and model")
             save_imgs(batches_done, generator,device)
             save_model(batches_done, generator, discriminator)
             
