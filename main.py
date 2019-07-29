@@ -88,14 +88,12 @@ for epoch in range(opt.n_epochs):
 
         # Adversarial loss
         if opt.model_use == "WGAN":
-            discriminator.train()
             loss_D_real = -torch.mean(discriminator(real_imgs))
-            loss_D_real.backward()
             
-
             loss_D_fake = torch.mean(discriminator(fake_imgs))
-            loss_D_fake.backward()
 
+            loss = loss_D_real + loss_D_fake
+            loss.backward()
             optimizer_D.step()
 
             # Clip weights of discriminator(WGAN weight clipping)
